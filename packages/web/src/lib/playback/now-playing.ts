@@ -259,7 +259,12 @@ export function useNowPlaying(
   }, [session, paused, rate]);
 
   React.useEffect(() => {
-    if (!session || !durationMs) return;
+    if (!session) return;
+    // Live streams can report Infinity, which WebKit rejects as a duration.
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      session.setPositionState();
+      return;
+    }
     const tell = () => {
       const { positionMs } = playhead;
       const last = told.current;
